@@ -1,0 +1,7 @@
+import MappyGame from '../mappy-game'
+
+function App() {
+  return <MappyGame />
+}
+
+export default App
