@@ -114,7 +114,7 @@ export function processPointerMove(gs, canvas, pos) {
     gs.lastPointerPos = pos;
 }
 
-export function processPointerUp(gs, canvas, pos) {
+export function processPointerUp(gs, canvas, pos, ctrlKey = false) {
     const w = toWorld(canvas, gs, pos.x, pos.y);
 
     if (gs.mode === "route-select") {
@@ -140,7 +140,14 @@ export function processPointerUp(gs, canvas, pos) {
         return;
     }
 
-    if (gs.isPanning) { gs.isPanning = false; gs.pointerDown = false; return; }
+    if (gs.isPanning) {
+        gs.isPanning = false;
+        gs.pointerDown = false;
+        if (gs.pointerDownPos) {
+            const dx = pos.x - gs.pointerDownPos.x, dy = pos.y - gs.pointerDownPos.y;
+            if (Math.hypot(dx, dy) > 8) return; // Only abort click if they actually dragged the map
+        }
+    }
 
     if (gs.isDragging) {
         if (gs.selectedNodeId && gs.dragTargetId && gs.currentDragPath) {
@@ -176,14 +183,24 @@ export function processPointerUp(gs, canvas, pos) {
     } else {
         // Ambush?
         const edge = getEdgeAt(gs, w.x, w.y);
-        if (edge && gs.selectedNodeId) {
-            const src = gs.nodes.find(n => n.id === gs.selectedNodeId);
-            if (src && (src.id === edge.n1 || src.id === edge.n2) && src.troops >= 20) {
-                src.troops -= 20;
-                edge.ambushBy = "player";
-                pushEvent(gs, "💣 AMBUSH PLACED", "20 troops spent. Trap set on road!");
+        if (edge && ctrlKey) {
+            const n1 = gs.nodes.find(n => n.id === edge.n1);
+            const n2 = gs.nodes.find(n => n.id === edge.n2);
+            
+            if (n1.owner !== "player" && n2.owner !== "player") {
+                pushEvent(gs, "⚠️ INVALID TARGET", "You must own a connected base!");
+            } else {
+                const activeAmbushes = gs.edges.filter(e => e.ambushBy === "player").length;
+                if (activeAmbushes < 3) {
+                    if (!edge.ambushBy) {
+                        edge.ambushBy = "player";
+                        pushEvent(gs, "💣 AMBUSH PLACED", "Trap set on road! (Max 3)");
+                    }
+                } else {
+                    pushEvent(gs, "⚠️ LIMIT REACHED", "Max 3 active ambushes allowed!");
+                }
             }
-        } else {
+        } else if (!edge) {
             gs.selectedNodeId = null;
             gs.selectedEnemyId = null;
         }
@@ -195,7 +212,7 @@ export function processPointerUp(gs, canvas, pos) {
 
 export function processWheel(gs, canvas, deltaY, clientX, clientY) {
     const zf = deltaY > 0 ? 0.9 : 1.1;
-    const nz = Math.max(0.4, Math.min(3, gs.zoom * zf));
+    const nz = Math.max(1, Math.min(3, gs.zoom * zf));
     const offsetX = (canvas.width - 900) / 2, offsetY = (canvas.height - 700) / 2;
     const rx = clientX - offsetX, ry = clientY - offsetY;
     gs.panX = rx - (rx - gs.panX) * (nz / gs.zoom);

@@ -1,9 +1,6 @@
 import { NODE_NAMES } from './constants';
 
-// ============================================================
-// GRAPH GENERATION (Procedural, weighted, force-directed)
-// ============================================================
-export function generateGraph(nodeCount = 22, w = 900, h = 700) {
+export function generateGraph(nodeCount = 30, w = 900, h = 700) {
     // Place nodes with some randomness + padding
     const padding = 80;
     const nodes = [];
@@ -48,9 +45,7 @@ export function generateGraph(nodeCount = 22, w = 900, h = 700) {
         edgeSet.add(key);
         const na = nodes[a], nb = nodes[b];
         const dist = Math.hypot(na.cx - nb.cx, na.cy - nb.cy);
-        // Weight = geometric distance + terrain penalty
-        const terrainMult = 0.8 + Math.random() * 1.4;
-        const weight = Math.round(dist * terrainMult);
+        const weight = Math.round(dist);
         edges.push({ id: key, n1: na.id, n2: nb.id, weight, ambushBy: null });
     };
 

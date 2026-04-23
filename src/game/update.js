@@ -57,15 +57,35 @@ export function update(gs, dt, ts, setUI) {
                 if (dot.targetIdx > 0) {
                     const prevId = swarm.path[dot.targetIdx - 1];
                     const edge = gs.edges.find(e => (e.n1 === prevId && e.n2 === targetId) || (e.n2 === prevId && e.n1 === targetId));
-                    if (edge && edge.ambushBy && edge.ambushBy !== swarm.owner) {
-                        // Kill half the remaining dots
-                        const toKill = Math.ceil(swarm.dots.length / 2);
-                        const killed = swarm.dots.splice(0, toKill);
-                        edge.ambushBy = null;
-                        // Spawn particles
-                        killed.forEach(d => { for (let k = 0; k < 3; k++) gs.particles.push(new Particle(d.x, d.y, "#ff4444")); });
-                        pushEvent(gs, "💣 AMBUSH TRIGGERED!", `A swarm was caught in the trap and lost ${toKill} units!`);
-                        break;
+                    if (edge) {
+                        // Attrition: Lose troops based on edge weight
+                        // If you own an ambush on this road, it secures the road and you take no attrition!
+                        if (!swarm.attritionPaid) swarm.attritionPaid = new Set();
+                        if (!swarm.attritionPaid.has(targetId)) {
+                            swarm.attritionPaid.add(targetId);
+                            if (edge.ambushBy !== swarm.owner) {
+                                // Deaths exactly match the number displayed on the road (5-15)
+                                const deaths = Math.min(15, Math.max(5, Math.round(edge.weight / 20))); 
+                                if (deaths > 0 && swarm.dots.length > 1) {
+                                    const toKill = Math.min(deaths, swarm.dots.length - 1); // Ensure at least 1 troop survives the journey
+                                    const killed = swarm.dots.splice(0, toKill);
+                                    killed.forEach(d => { for (let k = 0; k < 2; k++) gs.particles.push(new Particle(d.x, d.y, "#888888")); });
+                                    break; // Exit loop for this frame to prevent array index errors after splicing
+                                }
+                            }
+                        }
+
+                        // Ambush check
+                        if (edge.ambushBy && edge.ambushBy !== swarm.owner) {
+                            // Kill half the remaining dots
+                            const toKill = Math.ceil(swarm.dots.length / 2);
+                            const killed = swarm.dots.splice(0, toKill);
+                            edge.ambushBy = null;
+                            // Spawn particles
+                            killed.forEach(d => { for (let k = 0; k < 3; k++) gs.particles.push(new Particle(d.x, d.y, "#ff4444")); });
+                            pushEvent(gs, "💣 AMBUSH TRIGGERED!", `A swarm was caught in the trap and lost ${toKill} units!`);
+                            break;
+                        }
                     }
                 }
                 dot.targetIdx++;
@@ -77,7 +97,7 @@ export function update(gs, dt, ts, setUI) {
                     if (finalNode) {
                         swarm.arrivedTotal++;
                         if (finalNode.owner === swarm.owner) {
-                            finalNode.troops = Math.min(finalNode.maxTroops, finalNode.troops + 1);
+                            finalNode.troops += 1;
                         } else {
                             finalNode.troops -= 1;
                             if (finalNode.troops <= 0) {

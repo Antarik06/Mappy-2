@@ -2,9 +2,9 @@ import TitleBadge from './TitleBadge';
 import RouteSelectBanner from './RouteSelectBanner';
 import SelectedNodeCard from './SelectedNodeCard';
 import AttackCard from './AttackCard';
-import LegendPanel from './LegendPanel';
 
 export default function HUDOverlay({ gs, selectedNode, enemyNode, onPlanAttack, onAirstrike, onUpgradeAirbase }) {
+
     return (
         <>
             {/* Top-left: Title */}
@@ -30,9 +30,6 @@ export default function HUDOverlay({ gs, selectedNode, enemyNode, onPlanAttack, 
                     />
                 )}
             </div>
-
-            {/* Bottom right: Legend */}
-            <LegendPanel />
         </>
     );
 }

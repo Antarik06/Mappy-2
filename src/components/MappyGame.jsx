@@ -23,7 +23,7 @@ export default function MappyGame() {
     // ---- INIT ----
     const initGame = useCallback(() => {
         const W = window.innerWidth, H = window.innerHeight;
-        const { nodes, edges } = generateGraph(22, Math.min(W, 1100) - 40, Math.min(H, 800) - 40);
+        const { nodes, edges } = generateGraph(30, Math.min(W, 1100) - 40, Math.min(H, 800) - 40);
 
         // Assign starting owners
         const shuffled = [...nodes].sort(() => Math.random() - 0.5);
@@ -119,11 +119,10 @@ export default function MappyGame() {
         const gs = stateRef.current;
         if (!gs || gs.gameOver) return;
         const pos = e.changedTouches ? { x: e.changedTouches[0].clientX, y: e.changedTouches[0].clientY } : { x: e.clientX, y: e.clientY };
-        processPointerUp(gs, canvasRef.current, pos);
+        processPointerUp(gs, canvasRef.current, pos, e.ctrlKey);
     }, []);
 
     const handleWheel = useCallback((e) => {
-        e.preventDefault();
         const gs = stateRef.current;
         if (!gs) return;
         processWheel(gs, canvasRef.current, e.deltaY, e.clientX, e.clientY);
@@ -141,7 +140,7 @@ export default function MappyGame() {
 
     return (
         <div style={{ width: "100vw", height: "100vh", background: "#080b14", overflow: "hidden", fontFamily: "'Courier New', monospace", position: "relative" }}>
-            {/* CANVAS */}
+
             {ui.phase === "playing" && (
                 <GameCanvas
                     ref={canvasRef}
@@ -156,12 +155,12 @@ export default function MappyGame() {
                 />
             )}
 
-            {/* MENU */}
+
             {ui.phase === "menu" && (
                 <MenuScreen onStart={initGame} />
             )}
 
-            {/* GAME OVER */}
+
             {ui.phase === "gameover" && (
                 <GameOverScreen
                     won={ui.won}
@@ -169,7 +168,7 @@ export default function MappyGame() {
                 />
             )}
 
-            {/* HUD OVERLAY — during play */}
+
             {ui.phase === "playing" && gs && (
                 <HUDOverlay
                     gs={gs}
@@ -181,10 +180,9 @@ export default function MappyGame() {
                 />
             )}
 
-            <style>{`
-        @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
-        * { box-sizing: border-box; }
-      `}</style>
+            <style>
+                {`@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.5} } * { box-sizing: border-box; }=`}
+            </style>
         </div>
     );
 }

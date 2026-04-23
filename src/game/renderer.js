@@ -15,41 +15,94 @@ function roundRect(ctx, x, y, w, h, r) {
 }
 
 function drawHUD(ctx, canvas, gs, ts) {
-    const W = canvas.width;
-    const owners = ["player", "ai1", "ai2", "ai3"];
-    const labels = { player: "YOU", ai1: "RED", ai2: "ORG", ai3: "PUR" };
-    owners.forEach((owner, i) => {
-        const count = gs.nodes.filter(n => n.owner === owner).length;
-        const color = OWNER_COLORS[owner];
-        const x = W - 120, y = 20 + i * 28;
-        ctx.fillStyle = color;
-        ctx.shadowColor = color;
-        ctx.shadowBlur = 8;
-        ctx.font = "bold 11px 'Courier New', monospace";
-        ctx.textAlign = "left";
-        ctx.fillText(`${labels[owner]}: ${count} nodes`, x, y);
-        ctx.shadowBlur = 0;
-    });
+    const W = canvas.width, H = canvas.height;
 
+    // Draw events (bottom left)
     gs.events.forEach((ev, i) => {
         const alpha = Math.min(1, (ev.expiresAt - Date.now()) / 1000);
         ctx.globalAlpha = alpha;
         ctx.fillStyle = "rgba(10,14,28,0.85)";
-        roundRect(ctx, 16, 16 + i * 52, 270, 44, 8);
+        
+        // Stack from bottom up
+        const yBase = H - 20 - (gs.events.length - i) * 52;
+        
+        roundRect(ctx, 16, yBase, 270, 44, 8);
         ctx.fill();
         ctx.strokeStyle = "rgba(0,245,212,0.3)";
         ctx.lineWidth = 1;
-        roundRect(ctx, 16, 16 + i * 52, 270, 44, 8);
+        roundRect(ctx, 16, yBase, 270, 44, 8);
         ctx.stroke();
         ctx.fillStyle = "#00f5d4";
         ctx.font = "bold 10px 'Courier New', monospace";
         ctx.textAlign = "left";
-        ctx.fillText(ev.title, 26, 30 + i * 52);
+        ctx.textBaseline = "alphabetic";
+        ctx.fillText(ev.title, 26, yBase + 16);
         ctx.fillStyle = "rgba(200,210,220,0.8)";
         ctx.font = "9px 'Courier New', monospace";
-        ctx.fillText(ev.desc.slice(0, 40), 26, 46 + i * 52);
+        ctx.fillText(ev.desc.slice(0, 40), 26, yBase + 32);
         ctx.globalAlpha = 1;
     });
+
+    // Draw combined legend (bottom right)
+    const owners = ["player", "ai1", "ai2", "ai3", "neutral"];
+    const labels = { player: "YOU", ai1: "ENEMY α", ai2: "ENEMY β", ai3: "ENEMY γ", neutral: "NEUTRAL" };
+    
+    const legendW = 200;
+    const legendH = 145;
+    const legendX = W - legendW - 20;
+    const legendY = H - legendH - 20;
+
+    ctx.fillStyle = "rgba(8,11,20,0.8)";
+    roundRect(ctx, legendX, legendY, legendW, legendH, 12);
+    ctx.fill();
+    ctx.strokeStyle = "rgba(255,255,255,0.08)";
+    ctx.lineWidth = 1;
+    roundRect(ctx, legendX, legendY, legendW, legendH, 12);
+    ctx.stroke();
+
+    ctx.fillStyle = "rgba(200,210,220,0.4)";
+    ctx.font = "10px 'Courier New', monospace";
+    ctx.textAlign = "left";
+    ctx.textBaseline = "alphabetic";
+    ctx.fillText("LEGEND", legendX + 16, legendY + 20);
+
+    owners.forEach((owner, i) => {
+        const count = gs.nodes.filter(n => n.owner === owner).length;
+        const color = OWNER_COLORS[owner];
+        const y = legendY + 40 + i * 16;
+        
+        // Dot
+        ctx.beginPath();
+        ctx.arc(legendX + 20, y - 3, 4, 0, Math.PI * 2);
+        ctx.fillStyle = color;
+        ctx.shadowColor = color;
+        ctx.shadowBlur = 6;
+        ctx.fill();
+        ctx.shadowBlur = 0;
+
+        // Label
+        ctx.fillStyle = owner === "player" ? "#00f5d4" : "rgba(200,210,220,0.6)";
+        ctx.fillText(labels[owner], legendX + 32, y);
+
+        // Count
+        ctx.fillStyle = "rgba(200,210,220,0.8)";
+        ctx.textAlign = "right";
+        ctx.fillText(`${count} nodes`, legendX + legendW - 16, y);
+        ctx.textAlign = "left";
+    });
+
+    // Divider
+    ctx.beginPath();
+    ctx.moveTo(legendX + 16, legendY + 115);
+    ctx.lineTo(legendX + legendW - 16, legendY + 115);
+    ctx.strokeStyle = "rgba(255,255,255,0.08)";
+    ctx.stroke();
+
+    // Instructions
+    ctx.fillStyle = "rgba(200,210,220,0.3)";
+    ctx.font = "9px 'Courier New', monospace";
+    ctx.fillText("SCROLL: zoom · DRAG SPACE: pan", legendX + 16, legendY + 130);
+    ctx.fillText("CTRL + CLICK ROAD: ambush", legendX + 16, legendY + 142);
 }
 
 export function draw(ctx, canvas, gs, ts) {
@@ -124,6 +177,14 @@ function drawEdges(ctx, gs, ts) {
             ctx.lineDashOffset = -(ts / 30) % 18;
             ctx.shadowColor = "#ff4444";
             ctx.shadowBlur = 8;
+        } else if (edge.ambushBy) {
+            ctx.globalAlpha = 0.5;
+            ctx.strokeStyle = OWNER_COLORS[edge.ambushBy];
+            ctx.lineWidth = 3;
+            ctx.setLineDash([8, 8]);
+            ctx.lineDashOffset = -(ts / 40) % 16;
+            ctx.shadowColor = OWNER_COLORS[edge.ambushBy];
+            ctx.shadowBlur = 6;
         } else {
             ctx.globalAlpha = 0.25;
             ctx.strokeStyle = "#4a5568";
@@ -140,7 +201,8 @@ function drawEdges(ctx, gs, ts) {
             ctx.font = "9px 'Courier New', monospace";
             ctx.textAlign = "center";
             ctx.textBaseline = "middle";
-            ctx.fillText(Math.round(edge.weight / 40), mx, my);
+            // Map weights to a 5-15 range
+            ctx.fillText(Math.min(15, Math.max(5, Math.round(edge.weight / 20))), mx, my);
         }
 
         ctx.setLineDash([]);
