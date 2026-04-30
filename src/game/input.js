@@ -104,11 +104,28 @@ export function processPointerMove(gs, canvas, pos) {
         if (tNode && tNode.id !== gs.selectedNodeId) {
             const src = gs.nodes.find(n => n.id === gs.selectedNodeId);
             if (src) {
-                const result = dijkstra(gs.nodes, gs.edges, src.id, tNode.id);
-                if (result) { gs.dragTargetId = tNode.id; gs.currentDragPath = result.path; }
-                else { gs.dragTargetId = null; gs.currentDragPath = null; }
+                const result = dijkstra(gs.nodes, gs.edges, src.id, tNode.id, true);
+                if (result) {
+                    if (result.path.length > 4) {
+                        gs.currentDragPath = result.path.slice(0, 4);
+                        gs.dragTargetId = result.path[3];
+                        gs.dragPathTruncated = true;
+                    } else {
+                        gs.currentDragPath = result.path;
+                        gs.dragTargetId = tNode.id;
+                        gs.dragPathTruncated = false;
+                    }
+                } else {
+                    gs.dragTargetId = null;
+                    gs.currentDragPath = null;
+                    gs.dragPathTruncated = false;
+                }
             }
-        } else { gs.dragTargetId = null; gs.currentDragPath = null; }
+        } else {
+            gs.dragTargetId = null;
+            gs.currentDragPath = null;
+            gs.dragPathTruncated = false;
+        }
     }
 
     gs.lastPointerPos = pos;
@@ -124,7 +141,7 @@ export function processPointerUp(gs, canvas, pos, ctrlKey = false) {
                 const src = gs.nodes.find(n => n.id === gs.selectedNodeId);
                 const amt = Math.floor(src.troops * 0.5);
                 if (amt >= 1) {
-                    gs.swarms.push(createSwarm(src, gs.selectedEnemyId, "player", route.path, amt, gs.nodes));
+                    gs.swarms.push(createSwarm(src, gs.selectedEnemyId, "player", route.path, amt));
                     src.troops -= amt;
                 }
             }
@@ -154,7 +171,7 @@ export function processPointerUp(gs, canvas, pos, ctrlKey = false) {
             const src = gs.nodes.find(n => n.id === gs.selectedNodeId);
             const amt = Math.floor(src.troops * 0.5);
             if (amt >= 1) {
-                gs.swarms.push(createSwarm(src, gs.dragTargetId, "player", gs.currentDragPath, amt, gs.nodes));
+                gs.swarms.push(createSwarm(src, gs.dragTargetId, "player", gs.currentDragPath, amt));
                 src.troops -= amt;
             }
         }

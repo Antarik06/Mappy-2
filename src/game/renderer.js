@@ -14,7 +14,7 @@ function roundRect(ctx, x, y, w, h, r) {
     ctx.closePath();
 }
 
-function drawHUD(ctx, canvas, gs, ts) {
+function drawHUD(ctx, canvas, gs) {
     const W = canvas.width, H = canvas.height;
 
     // Draw events (bottom left)
@@ -126,12 +126,13 @@ export function draw(ctx, canvas, gs, ts) {
     drawEdges(ctx, gs, ts);
     drawDragLine(ctx, gs, ts);
     drawNodes(ctx, gs, ts);
+    drawWarnings(ctx, gs, ts);
     drawSwarms(ctx, gs);
     drawJets(ctx, gs);
     gs.particles.forEach(p => p.draw(ctx));
 
     ctx.restore();
-    drawHUD(ctx, canvas, gs, ts);
+    drawHUD(ctx, canvas, gs);
 }
 
 function drawEdges(ctx, gs, ts) {
@@ -240,6 +241,46 @@ function drawDragLine(ctx, gs, ts) {
             ctx.setLineDash([]);
         }
     }
+}
+
+function drawWarnings(ctx, gs, ts) {
+    const nodesToWarn = new Set();
+    
+    if (gs.isDragging && gs.currentDragPath && gs.dragPathTruncated) {
+        nodesToWarn.add(gs.currentDragPath[gs.currentDragPath.length - 1]);
+    }
+    
+    if (gs.mode === "route-select") {
+        gs.attackRoutes.forEach(route => {
+            if (route.isPartial && route.path.length > 0) {
+                nodesToWarn.add(route.path[route.path.length - 1]);
+            }
+        });
+    }
+
+    nodesToWarn.forEach(nodeId => {
+        const n = gs.nodes.find(node => node.id === nodeId);
+        if (!n) return;
+        
+        ctx.save();
+        ctx.translate(n.cx, n.cy - 38);
+        const floatOffset = Math.sin(ts / 200) * 3;
+        ctx.translate(0, floatOffset);
+        
+        ctx.fillStyle = "rgba(255, 0, 0, 0.15)";
+        ctx.strokeStyle = "rgba(255, 60, 60, 0.8)";
+        ctx.lineWidth = 1;
+        roundRect(ctx, -50, -10, 100, 20, 4);
+        ctx.fill();
+        ctx.stroke();
+        
+        ctx.fillStyle = "#ff4444";
+        ctx.font = "bold 9px 'Courier New', monospace";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText("⚠️ OUT OF RANGE", 0, 0);
+        ctx.restore();
+    });
 }
 
 function drawNodes(ctx, gs, ts) {

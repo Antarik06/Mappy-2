@@ -35,12 +35,9 @@ export function update(gs, dt, ts, setUI) {
     // Update swarms
     for (let si = gs.swarms.length - 1; si >= 0; si--) {
         const swarm = gs.swarms[si];
-        let anyAlive = false;
-
         for (let di = swarm.dots.length - 1; di >= 0; di--) {
             const dot = swarm.dots[di];
             if (dot.targetIdx >= swarm.path.length) continue;
-            anyAlive = true;
 
             const targetId = swarm.path[dot.targetIdx];
             const tNode = gs.nodes.find(n => n.id === targetId);

@@ -1,7 +1,7 @@
 // ============================================================
 // SWARM (animated dots travelling a path)
 // ============================================================
-export function createSwarm(srcNode, tgtId, owner, path, amount, nodes) {
+export function createSwarm(srcNode, tgtId, owner, path, amount) {
     const dots = [];
     for (let i = 0; i < amount; i++) {
         dots.push({

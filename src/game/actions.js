@@ -9,7 +9,16 @@ export function startRouteSelect(gs) {
     if (!gs || !gs.selectedNodeId || !gs.selectedEnemyId) return;
     const src = gs.nodes.find(n => n.id === gs.selectedNodeId);
     if (!src) return;
-    const routes = findKPaths(gs.nodes, gs.edges, gs.selectedNodeId, gs.selectedEnemyId, 4);
+    let routes = findKPaths(gs.nodes, gs.edges, gs.selectedNodeId, gs.selectedEnemyId, 4, true);
+    
+    // Apply Pathfinder Budget
+    routes = routes.map(r => {
+        if (r.path.length > 4) {
+            return { path: r.path.slice(0, 4), cost: r.cost, isPartial: true };
+        }
+        return { ...r, isPartial: false };
+    });
+    
     gs.attackRoutes = routes;
     gs.hoveredRouteIdx = 0;
     gs.mode = "route-select";

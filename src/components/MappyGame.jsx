@@ -18,7 +18,14 @@ export default function MappyGame() {
     const stateRef = useRef(null);
     const animRef = useRef(null);
     const lastTimeRef = useRef(null);
+    const hudRefreshRef = useRef(0);
     const [ui, setUI] = useState({ phase: "menu" }); // menu | playing | gameover
+    const [gameSnapshot, setGameSnapshot] = useState(null);
+
+    const publishGameSnapshot = useCallback(() => {
+        const gs = stateRef.current;
+        setGameSnapshot(gs ? { ...gs } : null);
+    }, []);
 
     // ---- INIT ----
     const initGame = useCallback(() => {
@@ -32,7 +39,7 @@ export default function MappyGame() {
         shuffled[2].owner = "ai2"; shuffled[2].troops = 40;
         shuffled[3].owner = "ai3"; shuffled[3].troops = 40;
 
-        stateRef.current = {
+        const nextGameState = {
             nodes, edges,
             swarms: [],
             jets: [],
@@ -59,6 +66,8 @@ export default function MappyGame() {
             isDragging: false,
             potentialDragId: null,
         };
+        stateRef.current = nextGameState;
+        setGameSnapshot({ ...nextGameState });
         setUI({ phase: "playing" });
     }, []);
 
@@ -86,6 +95,11 @@ export default function MappyGame() {
 
             update(gs, dt, ts, setUI);
             draw(ctx, canvas, gs, ts);
+            hudRefreshRef.current += dt;
+            if (hudRefreshRef.current >= 0.25) {
+                hudRefreshRef.current = 0;
+                publishGameSnapshot();
+            }
 
             animRef.current = requestAnimationFrame(loop);
         };
@@ -95,8 +109,9 @@ export default function MappyGame() {
             cancelAnimationFrame(animRef.current);
             window.removeEventListener("resize", resize);
             lastTimeRef.current = null;
+            hudRefreshRef.current = 0;
         };
-    }, [ui.phase]);
+    }, [publishGameSnapshot, ui.phase]);
 
     // ---- INPUT HANDLERS ----
     const handlePointerDown = useCallback((e) => {
@@ -105,7 +120,8 @@ export default function MappyGame() {
         if (!gs || gs.gameOver) return;
         const pos = e.touches ? { x: e.touches[0].clientX, y: e.touches[0].clientY } : { x: e.clientX, y: e.clientY };
         processPointerDown(gs, canvasRef.current, pos);
-    }, []);
+        publishGameSnapshot();
+    }, [publishGameSnapshot]);
 
     const handlePointerMove = useCallback((e) => {
         e.preventDefault();
@@ -113,28 +129,40 @@ export default function MappyGame() {
         if (!gs || gs.gameOver) return;
         const pos = e.touches ? { x: e.touches[0].clientX, y: e.touches[0].clientY } : { x: e.clientX, y: e.clientY };
         processPointerMove(gs, canvasRef.current, pos);
-    }, []);
+        if (gs.isDragging || gs.mode === "route-select") publishGameSnapshot();
+    }, [publishGameSnapshot]);
 
     const handlePointerUp = useCallback((e) => {
         const gs = stateRef.current;
         if (!gs || gs.gameOver) return;
         const pos = e.changedTouches ? { x: e.changedTouches[0].clientX, y: e.changedTouches[0].clientY } : { x: e.clientX, y: e.clientY };
         processPointerUp(gs, canvasRef.current, pos, e.ctrlKey);
-    }, []);
+        publishGameSnapshot();
+    }, [publishGameSnapshot]);
 
     const handleWheel = useCallback((e) => {
         const gs = stateRef.current;
         if (!gs) return;
         processWheel(gs, canvasRef.current, e.deltaY, e.clientX, e.clientY);
-    }, []);
+        publishGameSnapshot();
+    }, [publishGameSnapshot]);
 
     // ---- ACTION HANDLERS ----
-    const handleStartRouteSelect = () => startRouteSelect(stateRef.current);
-    const handleUpgradeAirbase = () => upgradeAirbase(stateRef.current);
-    const handleLaunchAirstrike = () => launchAirstrike(stateRef.current);
+    const handleStartRouteSelect = () => {
+        startRouteSelect(stateRef.current);
+        publishGameSnapshot();
+    };
+    const handleUpgradeAirbase = () => {
+        upgradeAirbase(stateRef.current);
+        publishGameSnapshot();
+    };
+    const handleLaunchAirstrike = () => {
+        launchAirstrike(stateRef.current);
+        publishGameSnapshot();
+    };
 
     // ---- RENDER ----
-    const gs = stateRef.current;
+    const gs = gameSnapshot;
     const selectedNode = gs?.nodes?.find(n => n.id === gs.selectedNodeId) || null;
     const enemyNode = gs?.nodes?.find(n => n.id === gs.selectedEnemyId) || null;
 
@@ -164,7 +192,7 @@ export default function MappyGame() {
             {ui.phase === "gameover" && (
                 <GameOverScreen
                     won={ui.won}
-                    onRestart={() => { stateRef.current = null; setUI({ phase: "menu" }); }}
+                    onRestart={() => { stateRef.current = null; setGameSnapshot(null); setUI({ phase: "menu" }); }}
                 />
             )}
 
@@ -181,7 +209,7 @@ export default function MappyGame() {
             )}
 
             <style>
-                {`@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.5} } * { box-sizing: border-box; }=`}
+                {`@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.5} } * { box-sizing: border-box; }`}
             </style>
         </div>
     );

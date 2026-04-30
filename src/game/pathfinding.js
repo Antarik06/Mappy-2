@@ -1,7 +1,7 @@
 // ============================================================
 // DIJKSTRA shortest path
 // ============================================================
-export function dijkstra(nodes, edges, srcId, tgtId) {
+export function dijkstra(nodes, edges, srcId, tgtId, useHops = false) {
     const nodeMap = {};
     nodes.forEach(n => nodeMap[n.id] = n);
 
@@ -25,7 +25,8 @@ export function dijkstra(nodes, edges, srcId, tgtId) {
         if (d > dist[u]) continue;
         if (u === tgtId) break;
         for (const { to, w } of (adj[u] || [])) {
-            const nd = dist[u] + w;
+            const edgeCost = useHops ? 1 : w;
+            const nd = dist[u] + edgeCost;
             if (nd < dist[to]) {
                 dist[to] = nd;
                 prev[to] = u;
@@ -42,9 +43,9 @@ export function dijkstra(nodes, edges, srcId, tgtId) {
 }
 
 // Find k alternative paths (Yen's k-shortest simplified)
-export function findKPaths(nodes, edges, srcId, tgtId, k = 4) {
+export function findKPaths(nodes, edges, srcId, tgtId, k = 4, useHops = false) {
     const result = [];
-    const base = dijkstra(nodes, edges, srcId, tgtId);
+    const base = dijkstra(nodes, edges, srcId, tgtId, useHops);
     if (!base) return [];
     result.push(base);
 
@@ -55,7 +56,7 @@ export function findKPaths(nodes, edges, srcId, tgtId, k = 4) {
         for (let i = 0; i < refPath.length - 1; i++) {
             const u = refPath[i], v = refPath[i + 1];
             const filteredEdges = edges.filter(e => !((e.n1 === u && e.n2 === v) || (e.n1 === v && e.n2 === u)));
-            const alt = dijkstra(nodes, filteredEdges, srcId, tgtId);
+            const alt = dijkstra(nodes, filteredEdges, srcId, tgtId, useHops);
             if (alt && !seen.has(alt.path.join(","))) {
                 seen.add(alt.path.join(","));
                 result.push(alt);
