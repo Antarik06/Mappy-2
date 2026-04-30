@@ -1,25 +1,25 @@
 export default function AttackCard({ selectedNode, enemyNode, onPlanAttack, onAirstrike }) {
     if (!selectedNode || !enemyNode) return null;
     return (
-        <div style={{ background: "rgba(8,11,20,0.9)", border: "1px solid rgba(255,0,110,0.35)", borderRadius: 16, padding: "16px 20px", minWidth: 260, backdropFilter: "blur(12px)" }}>
-            <div style={{ fontSize: 10, color: "#ff006e", letterSpacing: "0.3em", marginBottom: 6 }}>TARGET ACQUIRED</div>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 12 }}>
+        <div style={{ background: "var(--ui-panel)", border: "1px solid color-mix(in srgb, var(--ui-danger) 45%, transparent)", borderRadius: 8, padding: "16px 20px", minWidth: 260, backdropFilter: "blur(12px)", fontFamily: "Inter, ui-sans-serif, system-ui, sans-serif" }}>
+            <div style={{ fontSize: 10, color: "var(--ui-danger)", letterSpacing: "0.18em", fontWeight: 900, marginBottom: 6 }}>TARGET ACQUIRED</div>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 18, marginBottom: 12 }}>
                 <div>
-                    <div style={{ fontSize: 13, fontWeight: 700, color: "white" }}>{enemyNode.name.toUpperCase()}</div>
-                    <div style={{ fontSize: 10, color: "rgba(200,210,220,0.5)" }}>ENEMY TROOPS: {Math.floor(enemyNode.troops)}</div>
+                    <div style={{ fontSize: 13, fontWeight: 850, color: "var(--ui-text)" }}>{enemyNode.name.toUpperCase()}</div>
+                    <div style={{ fontSize: 10, color: "var(--ui-muted)" }}>ENEMY TROOPS: {Math.floor(enemyNode.troops)}</div>
                 </div>
                 <div style={{ textAlign: "right" }}>
-                    <div style={{ fontSize: 13, fontWeight: 700, color: "#00f5d4" }}>{selectedNode.name.toUpperCase()}</div>
-                    <div style={{ fontSize: 10, color: "rgba(200,210,220,0.5)" }}>YOURS: {Math.floor(selectedNode.troops)}</div>
+                    <div style={{ fontSize: 13, fontWeight: 850, color: "var(--ui-accent)" }}>{selectedNode.name.toUpperCase()}</div>
+                    <div style={{ fontSize: 10, color: "var(--ui-muted)" }}>YOURS: {Math.floor(selectedNode.troops)}</div>
                 </div>
             </div>
             <div style={{ display: "flex", gap: 8 }}>
-                <button onClick={onPlanAttack} style={{ flex: 1, background: "rgba(255,0,110,0.15)", border: "1px solid rgba(255,0,110,0.4)", borderRadius: 8, padding: "10px", fontSize: 10, color: "#ff006e", cursor: "pointer", letterSpacing: "0.1em", fontFamily: "inherit" }}>
-                    ⚔ PLAN ATTACK
+                <button onClick={onPlanAttack} style={{ flex: 1, background: "color-mix(in srgb, var(--ui-danger) 16%, transparent)", border: "1px solid color-mix(in srgb, var(--ui-danger) 42%, transparent)", borderRadius: 6, padding: "10px", fontSize: 10, color: "var(--ui-danger)", cursor: "pointer", letterSpacing: "0.08em", fontWeight: 900, fontFamily: "inherit" }}>
+                    PLAN ATTACK
                 </button>
                 {selectedNode.isAirbase && (
-                    <button onClick={onAirstrike} style={{ flex: 1, background: "rgba(255,215,0,0.12)", border: "1px solid rgba(255,215,0,0.35)", borderRadius: 8, padding: "10px", fontSize: 10, color: "#ffd700", cursor: "pointer", letterSpacing: "0.1em", fontFamily: "inherit" }}>
-                        ✈ AIRSTRIKE
+                    <button onClick={onAirstrike} style={{ flex: 1, background: "color-mix(in srgb, var(--ui-accent) 16%, transparent)", border: "1px solid color-mix(in srgb, var(--ui-accent) 42%, transparent)", borderRadius: 6, padding: "10px", fontSize: 10, color: "var(--ui-accent)", cursor: "pointer", letterSpacing: "0.08em", fontWeight: 900, fontFamily: "inherit" }}>
+                        AIRSTRIKE
                     </button>
                 )}
             </div>

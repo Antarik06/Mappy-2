@@ -1,4 +1,4 @@
-import { OWNER_COLORS, OWNER_GLOW } from './constants';
+import { OWNER_COLORS, OWNER_GLOW, getTheme } from './constants';
 
 function roundRect(ctx, x, y, w, h, r) {
     ctx.beginPath();
@@ -16,28 +16,29 @@ function roundRect(ctx, x, y, w, h, r) {
 
 function drawHUD(ctx, canvas, gs) {
     const W = canvas.width, H = canvas.height;
+    const theme = getTheme(gs.theme);
 
     // Draw events (bottom left)
     gs.events.forEach((ev, i) => {
-        const alpha = Math.min(1, (ev.expiresAt - Date.now()) / 1000);
+        const alpha = gs.paused ? 1 : Math.min(1, (ev.expiresAt - Date.now()) / 1000);
         ctx.globalAlpha = alpha;
-        ctx.fillStyle = "rgba(10,14,28,0.85)";
+        ctx.fillStyle = theme.panel;
         
         // Stack from bottom up
         const yBase = H - 20 - (gs.events.length - i) * 52;
         
         roundRect(ctx, 16, yBase, 270, 44, 8);
         ctx.fill();
-        ctx.strokeStyle = "rgba(0,245,212,0.3)";
+        ctx.strokeStyle = theme.panelBorder;
         ctx.lineWidth = 1;
         roundRect(ctx, 16, yBase, 270, 44, 8);
         ctx.stroke();
-        ctx.fillStyle = "#00f5d4";
+        ctx.fillStyle = theme.accent;
         ctx.font = "bold 10px 'Courier New', monospace";
         ctx.textAlign = "left";
         ctx.textBaseline = "alphabetic";
         ctx.fillText(ev.title, 26, yBase + 16);
-        ctx.fillStyle = "rgba(200,210,220,0.8)";
+        ctx.fillStyle = theme.text;
         ctx.font = "9px 'Courier New', monospace";
         ctx.fillText(ev.desc.slice(0, 40), 26, yBase + 32);
         ctx.globalAlpha = 1;
@@ -45,22 +46,22 @@ function drawHUD(ctx, canvas, gs) {
 
     // Draw combined legend (bottom right)
     const owners = ["player", "ai1", "ai2", "ai3", "neutral"];
-    const labels = { player: "YOU", ai1: "ENEMY α", ai2: "ENEMY β", ai3: "ENEMY γ", neutral: "NEUTRAL" };
+    const labels = { player: "YOU", ai1: "ENEMY A", ai2: "ENEMY B", ai3: "ENEMY C", neutral: "NEUTRAL" };
     
     const legendW = 200;
     const legendH = 145;
     const legendX = W - legendW - 20;
     const legendY = H - legendH - 20;
 
-    ctx.fillStyle = "rgba(8,11,20,0.8)";
+    ctx.fillStyle = theme.panel;
     roundRect(ctx, legendX, legendY, legendW, legendH, 12);
     ctx.fill();
-    ctx.strokeStyle = "rgba(255,255,255,0.08)";
+    ctx.strokeStyle = theme.panelBorder;
     ctx.lineWidth = 1;
     roundRect(ctx, legendX, legendY, legendW, legendH, 12);
     ctx.stroke();
 
-    ctx.fillStyle = "rgba(200,210,220,0.4)";
+    ctx.fillStyle = theme.muted;
     ctx.font = "10px 'Courier New', monospace";
     ctx.textAlign = "left";
     ctx.textBaseline = "alphabetic";
@@ -81,11 +82,11 @@ function drawHUD(ctx, canvas, gs) {
         ctx.shadowBlur = 0;
 
         // Label
-        ctx.fillStyle = owner === "player" ? "#00f5d4" : "rgba(200,210,220,0.6)";
+        ctx.fillStyle = owner === "player" ? OWNER_COLORS.player : theme.muted;
         ctx.fillText(labels[owner], legendX + 32, y);
 
         // Count
-        ctx.fillStyle = "rgba(200,210,220,0.8)";
+        ctx.fillStyle = theme.text;
         ctx.textAlign = "right";
         ctx.fillText(`${count} nodes`, legendX + legendW - 16, y);
         ctx.textAlign = "left";
@@ -95,23 +96,24 @@ function drawHUD(ctx, canvas, gs) {
     ctx.beginPath();
     ctx.moveTo(legendX + 16, legendY + 115);
     ctx.lineTo(legendX + legendW - 16, legendY + 115);
-    ctx.strokeStyle = "rgba(255,255,255,0.08)";
+    ctx.strokeStyle = theme.panelBorder;
     ctx.stroke();
 
     // Instructions
-    ctx.fillStyle = "rgba(200,210,220,0.3)";
+    ctx.fillStyle = theme.muted;
     ctx.font = "9px 'Courier New', monospace";
-    ctx.fillText("SCROLL: zoom · DRAG SPACE: pan", legendX + 16, legendY + 130);
+    ctx.fillText("SCROLL: zoom - DRAG SPACE: pan", legendX + 16, legendY + 130);
     ctx.fillText("CTRL + CLICK ROAD: ambush", legendX + 16, legendY + 142);
 }
 
 export function draw(ctx, canvas, gs, ts) {
     const W = canvas.width, H = canvas.height;
-    ctx.fillStyle = "#080b14";
+    const theme = getTheme(gs.theme);
+    ctx.fillStyle = theme.canvasBg;
     ctx.fillRect(0, 0, W, H);
 
     ctx.save();
-    ctx.strokeStyle = "rgba(255,255,255,0.025)";
+    ctx.strokeStyle = theme.grid;
     ctx.lineWidth = 1;
     const gSize = 40;
     for (let x = 0; x < W; x += gSize) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke(); }
@@ -136,6 +138,7 @@ export function draw(ctx, canvas, gs, ts) {
 }
 
 function drawEdges(ctx, gs, ts) {
+    const theme = getTheme(gs.theme);
     gs.edges.forEach(edge => {
         const na = gs.nodes.find(n => n.id === edge.n1);
         const nb = gs.nodes.find(n => n.id === edge.n2);
@@ -147,7 +150,7 @@ function drawEdges(ctx, gs, ts) {
             gs.attackRoutes.forEach((route, idx) => {
                 const inRoute = route.path.some((_, i) => i < route.path.length - 1 && ((route.path[i] === na.id && route.path[i + 1] === nb.id) || (route.path[i] === nb.id && route.path[i + 1] === na.id)));
                 if (inRoute) {
-                    routeColor = idx === gs.hoveredRouteIdx ? "#00ff88" : "#44aa66";
+                    routeColor = idx === gs.hoveredRouteIdx ? theme.route : OWNER_COLORS.player;
                     routeAlpha = idx === gs.hoveredRouteIdx ? 1 : 0.45;
                 }
             });
@@ -172,11 +175,11 @@ function drawEdges(ctx, gs, ts) {
             ctx.shadowBlur = 12;
         } else if (isDragPath) {
             ctx.globalAlpha = 0.9;
-            ctx.strokeStyle = "#ff4444";
+            ctx.strokeStyle = theme.danger;
             ctx.lineWidth = 4;
             ctx.setLineDash([10, 8]);
             ctx.lineDashOffset = -(ts / 30) % 18;
-            ctx.shadowColor = "#ff4444";
+            ctx.shadowColor = theme.danger;
             ctx.shadowBlur = 8;
         } else if (edge.ambushBy) {
             ctx.globalAlpha = 0.5;
@@ -188,7 +191,7 @@ function drawEdges(ctx, gs, ts) {
             ctx.shadowBlur = 6;
         } else {
             ctx.globalAlpha = 0.25;
-            ctx.strokeStyle = "#4a5568";
+            ctx.strokeStyle = theme.road;
             ctx.lineWidth = 2;
             ctx.setLineDash([]);
             ctx.shadowBlur = 0;
@@ -198,7 +201,7 @@ function drawEdges(ctx, gs, ts) {
         if (!routeColor) {
             const mx = (na.cx + nb.cx) / 2, my = (na.cy + nb.cy) / 2;
             ctx.globalAlpha = 0.4;
-            ctx.fillStyle = "#8899aa";
+            ctx.fillStyle = theme.muted;
             ctx.font = "9px 'Courier New', monospace";
             ctx.textAlign = "center";
             ctx.textBaseline = "middle";
@@ -227,13 +230,14 @@ function drawEdges(ctx, gs, ts) {
 }
 
 function drawDragLine(ctx, gs, ts) {
+    const theme = getTheme(gs.theme);
     if (gs.isDragging && gs.dragPos && gs.selectedNodeId && !gs.currentDragPath) {
         const src = gs.nodes.find(n => n.id === gs.selectedNodeId);
         if (src) {
             ctx.beginPath();
             ctx.moveTo(src.cx, src.cy);
             ctx.lineTo(gs.dragPos.x, gs.dragPos.y);
-            ctx.strokeStyle = "rgba(255,255,255,0.3)";
+            ctx.strokeStyle = theme.muted;
             ctx.lineWidth = 2;
             ctx.setLineDash([8, 8]);
             ctx.lineDashOffset = -(ts / 40) % 16;
@@ -244,6 +248,7 @@ function drawDragLine(ctx, gs, ts) {
 }
 
 function drawWarnings(ctx, gs, ts) {
+    const theme = getTheme(gs.theme);
     const nodesToWarn = new Set();
     
     if (gs.isDragging && gs.currentDragPath && gs.dragPathTruncated) {
@@ -268,13 +273,13 @@ function drawWarnings(ctx, gs, ts) {
         ctx.translate(0, floatOffset);
         
         ctx.fillStyle = "rgba(255, 0, 0, 0.15)";
-        ctx.strokeStyle = "rgba(255, 60, 60, 0.8)";
+        ctx.strokeStyle = theme.danger;
         ctx.lineWidth = 1;
         roundRect(ctx, -50, -10, 100, 20, 4);
         ctx.fill();
         ctx.stroke();
         
-        ctx.fillStyle = "#ff4444";
+        ctx.fillStyle = theme.danger;
         ctx.font = "bold 9px 'Courier New', monospace";
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
@@ -284,6 +289,7 @@ function drawWarnings(ctx, gs, ts) {
 }
 
 function drawNodes(ctx, gs, ts) {
+    const theme = getTheme(gs.theme);
     gs.nodes.forEach(node => {
         const isSelected = node.id === gs.selectedNodeId;
         const isTarget = node.id === gs.selectedEnemyId || node.id === gs.dragTargetId;
@@ -300,9 +306,9 @@ function drawNodes(ctx, gs, ts) {
             ctx.scale(pulse, pulse);
             ctx.beginPath();
             ctx.arc(0, 0, r + 12, 0, Math.PI * 2);
-            ctx.strokeStyle = isTarget ? "#ff4444" : "#ffffff";
+            ctx.strokeStyle = isTarget ? theme.danger : theme.text;
             ctx.lineWidth = 2.5;
-            ctx.shadowColor = isTarget ? "#ff2200" : "#00f5d4";
+            ctx.shadowColor = isTarget ? theme.danger : OWNER_COLORS.player;
             ctx.shadowBlur = 20;
             ctx.globalAlpha = 0.7;
             ctx.setLineDash([6, 5]);
@@ -314,7 +320,7 @@ function drawNodes(ctx, gs, ts) {
         if (node.isAirbase) {
             ctx.beginPath();
             ctx.arc(0, 0, r + 8, 0, Math.PI * 2);
-            ctx.strokeStyle = "#ffd700";
+            ctx.strokeStyle = OWNER_COLORS.ai3;
             ctx.lineWidth = 1.5;
             ctx.globalAlpha = 0.5 + 0.3 * Math.sin(ts / 300);
             ctx.setLineDash([4, 4]);
@@ -336,7 +342,7 @@ function drawNodes(ctx, gs, ts) {
 
         ctx.beginPath();
         ctx.arc(0, 0, r - 5, 0, Math.PI * 2);
-        ctx.fillStyle = "rgba(8,11,20,0.75)";
+        ctx.fillStyle = theme.innerNode;
         ctx.shadowBlur = 0;
         ctx.fill();
 
@@ -349,14 +355,14 @@ function drawNodes(ctx, gs, ts) {
         ctx.fillText(Math.floor(node.troops), 0, 0);
         ctx.shadowBlur = 0;
 
-        ctx.fillStyle = "rgba(220,230,240,0.75)";
+        ctx.fillStyle = theme.text;
         ctx.font = "9px 'Courier New', monospace";
         ctx.textAlign = "center";
         ctx.textBaseline = "top";
         ctx.fillText(node.name.toUpperCase(), 0, r + 5);
 
         if (node.isAirbase) {
-            ctx.fillStyle = "#ffd700";
+            ctx.fillStyle = OWNER_COLORS.ai3;
             ctx.font = "8px sans-serif";
             ctx.fillText("✈", 0, -(r + 14));
         }
@@ -413,3 +419,4 @@ function drawJets(ctx, gs) {
         ctx.restore();
     });
 }
+

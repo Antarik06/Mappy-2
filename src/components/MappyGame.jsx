@@ -19,6 +19,7 @@ export default function MappyGame() {
     const animRef = useRef(null);
     const lastTimeRef = useRef(null);
     const hudRefreshRef = useRef(0);
+    const [theme, setTheme] = useState("dark");
     const [ui, setUI] = useState({ phase: "menu" }); // menu | playing | gameover
     const [gameSnapshot, setGameSnapshot] = useState(null);
 
@@ -65,11 +66,15 @@ export default function MappyGame() {
             isPanning: false,
             isDragging: false,
             potentialDragId: null,
+            paused: false,
+            pauseTs: null,
+            pauseWallAt: null,
+            theme,
         };
         stateRef.current = nextGameState;
         setGameSnapshot({ ...nextGameState });
         setUI({ phase: "playing" });
-    }, []);
+    }, [theme]);
 
     // ---- GAME LOOP ----
     useEffect(() => {
@@ -93,8 +98,13 @@ export default function MappyGame() {
             const gs = stateRef.current;
             if (!gs || gs.gameOver) { animRef.current = requestAnimationFrame(loop); return; }
 
-            update(gs, dt, ts, setUI);
-            draw(ctx, canvas, gs, ts);
+            gs.theme = theme;
+            if (gs.paused) {
+                draw(ctx, canvas, gs, gs.pauseTs ?? ts);
+            } else {
+                update(gs, dt, ts, setUI);
+                draw(ctx, canvas, gs, ts);
+            }
             hudRefreshRef.current += dt;
             if (hudRefreshRef.current >= 0.25) {
                 hudRefreshRef.current = 0;
@@ -111,13 +121,13 @@ export default function MappyGame() {
             lastTimeRef.current = null;
             hudRefreshRef.current = 0;
         };
-    }, [publishGameSnapshot, ui.phase]);
+    }, [publishGameSnapshot, theme, ui.phase]);
 
     // ---- INPUT HANDLERS ----
     const handlePointerDown = useCallback((e) => {
         e.preventDefault();
         const gs = stateRef.current;
-        if (!gs || gs.gameOver) return;
+        if (!gs || gs.gameOver || gs.paused) return;
         const pos = e.touches ? { x: e.touches[0].clientX, y: e.touches[0].clientY } : { x: e.clientX, y: e.clientY };
         processPointerDown(gs, canvasRef.current, pos);
         publishGameSnapshot();
@@ -126,7 +136,7 @@ export default function MappyGame() {
     const handlePointerMove = useCallback((e) => {
         e.preventDefault();
         const gs = stateRef.current;
-        if (!gs || gs.gameOver) return;
+        if (!gs || gs.gameOver || gs.paused) return;
         const pos = e.touches ? { x: e.touches[0].clientX, y: e.touches[0].clientY } : { x: e.clientX, y: e.clientY };
         processPointerMove(gs, canvasRef.current, pos);
         if (gs.isDragging || gs.mode === "route-select") publishGameSnapshot();
@@ -134,7 +144,7 @@ export default function MappyGame() {
 
     const handlePointerUp = useCallback((e) => {
         const gs = stateRef.current;
-        if (!gs || gs.gameOver) return;
+        if (!gs || gs.gameOver || gs.paused) return;
         const pos = e.changedTouches ? { x: e.changedTouches[0].clientX, y: e.changedTouches[0].clientY } : { x: e.clientX, y: e.clientY };
         processPointerUp(gs, canvasRef.current, pos, e.ctrlKey);
         publishGameSnapshot();
@@ -142,23 +152,53 @@ export default function MappyGame() {
 
     const handleWheel = useCallback((e) => {
         const gs = stateRef.current;
-        if (!gs) return;
+        if (!gs || gs.paused) return;
         processWheel(gs, canvasRef.current, e.deltaY, e.clientX, e.clientY);
         publishGameSnapshot();
     }, [publishGameSnapshot]);
 
     // ---- ACTION HANDLERS ----
     const handleStartRouteSelect = () => {
+        if (stateRef.current?.paused) return;
         startRouteSelect(stateRef.current);
         publishGameSnapshot();
     };
     const handleUpgradeAirbase = () => {
+        if (stateRef.current?.paused) return;
         upgradeAirbase(stateRef.current);
         publishGameSnapshot();
     };
     const handleLaunchAirstrike = () => {
+        if (stateRef.current?.paused) return;
         launchAirstrike(stateRef.current);
         publishGameSnapshot();
+    };
+    const handleTogglePause = () => {
+        const gs = stateRef.current;
+        if (!gs || gs.gameOver) return;
+        if (gs.paused) {
+            const pausedFor = Date.now() - (gs.pauseWallAt ?? Date.now());
+            gs.events.forEach(event => {
+                event.expiresAt += pausedFor;
+            });
+            gs.paused = false;
+            gs.pauseTs = null;
+            gs.pauseWallAt = null;
+        } else {
+            gs.paused = true;
+            gs.pauseTs = performance.now();
+            gs.pauseWallAt = Date.now();
+        }
+        lastTimeRef.current = null;
+        publishGameSnapshot();
+    };
+    const handleToggleTheme = () => {
+        const nextTheme = theme === "dark" ? "light" : "dark";
+        setTheme(nextTheme);
+        if (stateRef.current) {
+            stateRef.current.theme = nextTheme;
+            publishGameSnapshot();
+        }
     };
 
     // ---- RENDER ----
@@ -167,7 +207,7 @@ export default function MappyGame() {
     const enemyNode = gs?.nodes?.find(n => n.id === gs.selectedEnemyId) || null;
 
     return (
-        <div style={{ width: "100vw", height: "100vh", background: "#080b14", overflow: "hidden", fontFamily: "'Courier New', monospace", position: "relative" }}>
+        <div className={`app-shell theme-${theme}`} style={{ width: "100vw", height: "100vh", overflow: "hidden", position: "relative" }}>
 
             {ui.phase === "playing" && (
                 <GameCanvas
@@ -185,7 +225,7 @@ export default function MappyGame() {
 
 
             {ui.phase === "menu" && (
-                <MenuScreen onStart={initGame} />
+                <MenuScreen onStart={initGame} theme={theme} onToggleTheme={handleToggleTheme} />
             )}
 
 
@@ -205,6 +245,9 @@ export default function MappyGame() {
                     onPlanAttack={handleStartRouteSelect}
                     onAirstrike={handleLaunchAirstrike}
                     onUpgradeAirbase={handleUpgradeAirbase}
+                    onTogglePause={handleTogglePause}
+                    onToggleTheme={handleToggleTheme}
+                    theme={theme}
                 />
             )}
 

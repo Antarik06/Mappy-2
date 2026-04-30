@@ -1,0 +1,59 @@
+.hud-controls {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    z-index: 4;
+    display: flex;
+    gap: 8px;
+}
+
+.hud-control-button {
+    min-width: 78px;
+    border: 1px solid var(--ui-border);
+    border-radius: 6px;
+    padding: 9px 12px;
+    background: var(--ui-panel);
+    color: var(--ui-text);
+    font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+    font-size: 11px;
+    font-weight: 850;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    cursor: pointer;
+    backdrop-filter: blur(14px);
+}
+
+.hud-control-button:hover {
+    border-color: var(--ui-accent);
+    color: var(--ui-accent);
+}
+
+.pause-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    display: grid;
+    place-items: center;
+    pointer-events: none;
+    background: rgba(0, 0, 0, 0.12);
+}
+
+.pause-label {
+    color: var(--ui-text);
+    font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+    font-size: clamp(52px, 10vw, 128px);
+    font-weight: 950;
+    line-height: 0.9;
+    text-transform: uppercase;
+    text-shadow: 0 20px 80px rgba(0, 0, 0, 0.35);
+}
+
+.pause-copy {
+    margin-top: -18px;
+    color: var(--ui-muted);
+    font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+    font-size: 13px;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}

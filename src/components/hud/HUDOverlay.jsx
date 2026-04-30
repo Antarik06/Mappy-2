@@ -2,13 +2,30 @@ import TitleBadge from './TitleBadge';
 import RouteSelectBanner from './RouteSelectBanner';
 import SelectedNodeCard from './SelectedNodeCard';
 import AttackCard from './AttackCard';
+import './HUDOverlay.css';
 
-export default function HUDOverlay({ gs, selectedNode, enemyNode, onPlanAttack, onAirstrike, onUpgradeAirbase }) {
+export default function HUDOverlay({ gs, selectedNode, enemyNode, onPlanAttack, onAirstrike, onUpgradeAirbase, onTogglePause, onToggleTheme, theme }) {
 
     return (
         <>
             {/* Top-left: Title */}
             <TitleBadge />
+
+            <div className="hud-controls">
+                <button className="hud-control-button" onClick={onTogglePause}>
+                    {gs.paused ? "Resume" : "Pause"}
+                </button>
+                <button className="hud-control-button" onClick={onToggleTheme}>
+                    {theme === "dark" ? "Light" : "Dark"}
+                </button>
+            </div>
+
+            {gs.paused && (
+                <div className="pause-overlay">
+                    <div className="pause-label">Paused</div>
+                    <div className="pause-copy">The battlefield is frozen exactly here.</div>
+                </div>
+            )}
 
             {/* Route select banner */}
             <RouteSelectBanner visible={gs.mode === "route-select"} />
