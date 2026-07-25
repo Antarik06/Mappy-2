@@ -1,0 +1,1133 @@
+/* ============================================================
+   IRONTIDE — interface styles
+   Dark war-room chrome layered over the map. Everything here is
+   translucent and light on ink so the map stays the loudest thing
+   on screen.
+   ============================================================ */
+
+:root {
+    --void: #070a0f;
+    --void-warm: #0c1119;
+    --panel: rgba(12, 16, 23, 0.86);
+    --panel-solid: #0e131b;
+    --panel-line: rgba(232, 238, 250, 0.11);
+    --panel-line-strong: rgba(232, 238, 250, 0.2);
+
+    --ink: #f2eee4;
+    --ink-soft: rgba(242, 238, 228, 0.66);
+    --ink-faint: rgba(242, 238, 228, 0.36);
+
+    --gold: #e8b54b;
+    --hot: #ff7043;
+    --danger: #ff5470;
+    --good: #5fd6a4;
+    --teal: #4fd6c4;
+
+    --radius: 12px;
+    --radius-sm: 8px;
+
+    --font-display: "Cinzel", "Iowan Old Style", Georgia, serif;
+    --font-ui: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+
+    --shadow: 0 18px 48px rgba(0, 0, 0, 0.55);
+}
+
+* { box-sizing: border-box; }
+
+html, body, #root {
+    height: 100%;
+    margin: 0;
+    background: var(--void);
+    color: var(--ink);
+    font-family: var(--font-ui);
+    overflow: hidden;
+}
+
+body {
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+}
+
+button {
+    font-family: inherit;
+    color: inherit;
+    cursor: pointer;
+    border: none;
+    background: none;
+}
+
+button:focus-visible,
+input:focus-visible {
+    outline: 2px solid var(--gold);
+    outline-offset: 2px;
+}
+
+.numeric { font-variant-numeric: tabular-nums; }
+
+/* ---------- Shared chrome ---------- */
+
+.panel {
+    background: var(--panel);
+    border: 1px solid var(--panel-line);
+    border-radius: var(--radius);
+    backdrop-filter: blur(14px);
+    box-shadow: var(--shadow);
+}
+
+.eyebrow {
+    font-size: 10px;
+    letter-spacing: 0.19em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    font-weight: 600;
+}
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px 18px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--panel-line-strong);
+    background: rgba(255, 255, 255, 0.04);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    transition: background 0.16s ease, border-color 0.16s ease, transform 0.16s ease;
+}
+
+.btn:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.09);
+    border-color: var(--panel-line-strong);
+}
+
+.btn:active:not(:disabled) { transform: translateY(1px); }
+
+.btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #f0c765, var(--gold));
+    color: #221701;
+    border-color: transparent;
+    font-weight: 800;
+}
+
+.btn-primary:hover:not(:disabled) {
+    background: linear-gradient(135deg, #f7d585, #f0bf5c);
+    box-shadow: 0 0 26px rgba(232, 181, 75, 0.35);
+}
+
+/* ============================================================
+   MENU
+   ============================================================ */
+
+.menu {
+    position: relative;
+    height: 100%;
+    overflow: hidden;
+}
+
+.menu-canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+}
+
+/* Darkest through the middle where the controls sit, clearing toward the
+   corners so the live battle still reads around the edges. */
+.menu-scrim {
+    position: absolute;
+    inset: 0;
+    background:
+        radial-gradient(ellipse 62% 78% at 50% 50%,
+            rgba(6, 9, 14, 0.93) 0%,
+            rgba(6, 9, 14, 0.86) 38%,
+            rgba(6, 9, 14, 0.5) 68%,
+            rgba(6, 9, 14, 0.28) 100%),
+        linear-gradient(180deg, rgba(6, 9, 14, 0.62), rgba(6, 9, 14, 0.2) 45%, rgba(6, 9, 14, 0.7));
+}
+
+/*
+ * One centred column, sized to fit a single viewport. Deliberately has no
+ * inner overflow: a scroll container here renders a scrollbar that reads as
+ * a sidebar and clips the title. If a viewport really is too short, the
+ * stage itself scrolls as a whole rather than a panel within it.
+ */
+.menu-stage {
+    position: relative;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: clamp(16px, 2.6vh, 30px);
+    padding: clamp(20px, 4vh, 44px) 24px;
+    overflow-y: auto;
+    text-align: center;
+}
+
+.menu-hero {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+}
+
+.live-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 5px 12px 5px 10px;
+    border-radius: 100px;
+    background: rgba(255, 84, 112, 0.12);
+    border: 1px solid rgba(255, 84, 112, 0.35);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: #ffc2ce;
+}
+
+.live-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--danger);
+    box-shadow: 0 0 0 0 rgba(255, 84, 112, 0.65);
+    animation: live-pulse 1.9s ease-out infinite;
+}
+
+@keyframes live-pulse {
+    0% { box-shadow: 0 0 0 0 rgba(255, 84, 112, 0.6); }
+    70% { box-shadow: 0 0 0 8px rgba(255, 84, 112, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(255, 84, 112, 0); }
+}
+
+.menu-title {
+    font-family: var(--font-display);
+    /* Capped well below the stage width so the longest word can never be
+       clipped, and modest enough that two lines still leave room for the
+       controls on a short laptop viewport. */
+    font-size: clamp(34px, 5.2vw, 64px);
+    line-height: 1.02;
+    letter-spacing: 0.05em;
+    margin: 0;
+    font-weight: 700;
+    background: linear-gradient(180deg, #fff6e0 8%, var(--gold) 58%, #9a6f1d 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    filter: drop-shadow(0 6px 34px rgba(232, 181, 75, 0.3));
+}
+
+/* Each word on its own line — the name is a two-beat title, not a sentence. */
+.menu-title-line { display: block; }
+
+.menu-tagline {
+    margin: 0;
+    font-size: clamp(12.5px, 1.1vw, 14.5px);
+    color: var(--ink-soft);
+    letter-spacing: 0.04em;
+}
+
+/* ---------- Controls ---------- */
+
+.menu-controls {
+    width: min(560px, 100%);
+    display: grid;
+    gap: 18px;
+    padding: clamp(16px, 2.2vh, 22px) clamp(18px, 2vw, 24px);
+    border-radius: var(--radius);
+    background: rgba(10, 14, 21, 0.72);
+    border: 1px solid var(--panel-line);
+    backdrop-filter: blur(16px);
+    box-shadow: var(--shadow);
+    text-align: left;
+}
+
+.control-block { display: grid; gap: 8px; }
+
+.difficulty-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+}
+
+.difficulty {
+    display: grid;
+    gap: 2px;
+    padding: 10px 8px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--panel-line);
+    background: rgba(255, 255, 255, 0.03);
+    transition: border-color 0.16s ease, background 0.16s ease;
+}
+
+.difficulty:hover { background: rgba(255, 255, 255, 0.07); }
+
+.difficulty[aria-pressed="true"] {
+    border-color: var(--gold);
+    background: rgba(232, 181, 75, 0.12);
+}
+
+.difficulty-name {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+}
+
+.difficulty-rivals {
+    font-size: 10.5px;
+    color: var(--ink-faint);
+}
+
+/* One shared blurb for the selected option — three stacked descriptions were
+   what pushed the old layout past the fold. */
+.difficulty-blurb {
+    margin: 2px 0 0;
+    min-height: 2.6em;
+    font-size: 11.5px;
+    line-height: 1.45;
+    color: var(--ink-soft);
+}
+
+.field-label {
+    display: block;
+}
+
+.seed-row {
+    display: flex;
+    gap: 8px;
+}
+
+.seed-input {
+    flex: 1;
+    min-width: 0;
+    padding: 10px 12px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--panel-line-strong);
+    background: rgba(0, 0, 0, 0.35);
+    color: var(--ink);
+    font-family: var(--font-ui);
+    font-size: 13px;
+    letter-spacing: 0.16em;
+    font-variant-numeric: tabular-nums;
+    text-transform: uppercase;
+}
+
+.seed-input::placeholder {
+    color: var(--ink-faint);
+    letter-spacing: 0.1em;
+}
+
+.menu-actions {
+    width: min(560px, 100%);
+    display: flex;
+    gap: 10px;
+}
+
+.menu-actions .btn { flex: 1; }
+
+.menu-actions .btn-primary {
+    flex: 2;
+    padding: 14px 22px;
+    font-size: 13.5px;
+    letter-spacing: 0.14em;
+}
+
+/* Short viewports: trim the hero rather than let anything scroll. */
+@media (max-height: 640px) {
+    .menu-title { font-size: clamp(28px, 4vw, 44px); }
+    .live-badge { display: none; }
+    .difficulty-blurb { min-height: 0; }
+}
+
+/* ---------- How to play ---------- */
+
+.modal-backdrop {
+    position: fixed;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    background: rgba(4, 6, 10, 0.78);
+    backdrop-filter: blur(6px);
+    z-index: 60;
+    padding: 24px;
+}
+
+.modal {
+    width: min(680px, 100%);
+    max-height: min(84vh, 720px);
+    overflow-y: auto;
+    padding: 26px 28px;
+}
+
+.modal h2 {
+    font-family: var(--font-display);
+    font-size: 26px;
+    letter-spacing: 0.09em;
+    margin: 0 0 4px;
+}
+
+.modal-sub {
+    color: var(--ink-soft);
+    font-size: 13px;
+    margin: 0 0 22px;
+}
+
+.rule {
+    display: grid;
+    grid-template-columns: 34px 1fr;
+    gap: 14px;
+    padding: 14px 0;
+    border-top: 1px solid var(--panel-line);
+}
+
+.rule-icon {
+    display: grid;
+    place-items: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 9px;
+    background: rgba(232, 181, 75, 0.13);
+    color: var(--gold);
+    font-size: 16px;
+}
+
+.rule h3 {
+    margin: 0 0 4px;
+    font-size: 13px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.rule p {
+    margin: 0;
+    font-size: 12.5px;
+    line-height: 1.6;
+    color: var(--ink-soft);
+}
+
+.rule em {
+    color: var(--gold);
+    font-style: normal;
+    font-weight: 600;
+}
+
+/* ============================================================
+   GAME
+   ============================================================ */
+
+.game {
+    position: relative;
+    height: 100%;
+    overflow: hidden;
+}
+
+.game-canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    touch-action: none;
+    cursor: grab;
+}
+
+.game-canvas.is-dragging-order { cursor: crosshair; }
+.game-canvas.is-panning { cursor: grabbing; }
+
+/* ---------- Top bar ----------
+   Not a bar: three floating clusters over a soft gradient scrim, so the map
+   runs unbroken beneath the chrome. */
+
+.topbar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 16px;
+    z-index: 20;
+    pointer-events: none;
+}
+
+.topbar > *:not(.topbar-scrim) { pointer-events: auto; }
+
+.topbar-scrim {
+    position: absolute;
+    inset: 0;
+    height: 120px;
+    background: linear-gradient(180deg, rgba(5, 8, 13, 0.82) 0%, rgba(5, 8, 13, 0.42) 46%, rgba(5, 8, 13, 0) 100%);
+    pointer-events: none;
+}
+
+/* The shared floating-pill treatment. */
+.cluster {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 7px 12px;
+    border-radius: 10px;
+    background: rgba(10, 14, 21, 0.72);
+    border: 1px solid var(--panel-line);
+    backdrop-filter: blur(12px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+    white-space: nowrap;
+}
+
+.brand { align-items: baseline; gap: 11px; }
+
+.brand-name {
+    font-family: var(--font-display);
+    /* Longer than a one-word name, so a touch smaller and tighter to keep the
+       pill from crowding the standings row on narrower windows. */
+    font-size: 14px;
+    letter-spacing: 0.13em;
+    color: var(--gold);
+}
+
+.brand-seed {
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    color: var(--ink-faint);
+}
+
+.standings {
+    display: flex;
+    gap: 8px;
+    flex: 1;
+    min-width: 0;
+    overflow-x: auto;
+    scrollbar-width: none;
+}
+
+.standings::-webkit-scrollbar { display: none; }
+
+.standing.is-you { border-color: rgba(79, 214, 196, 0.5); }
+.standing.is-dead { opacity: 0.38; }
+
+.standing-dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 3px;
+    flex-shrink: 0;
+}
+
+.standing-name {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.11em;
+}
+
+.standing-figures {
+    font-size: 11px;
+    color: var(--ink-soft);
+}
+
+.standing-figures .unit { opacity: 0.45; }
+
+.topbar-tools {
+    gap: 5px;
+    padding: 5px 6px;
+    margin-left: auto;
+}
+
+.icon-btn {
+    position: relative;
+    width: 32px;
+    height: 32px;
+    display: grid;
+    place-items: center;
+    border-radius: 8px;
+    border: 1px solid transparent;
+    background: rgba(255, 255, 255, 0.05);
+    font-size: 13px;
+    transition: background 0.16s ease, border-color 0.16s ease;
+}
+
+.icon-btn:hover { background: rgba(255, 255, 255, 0.12); }
+.icon-btn[aria-pressed="true"] {
+    border-color: var(--gold);
+    color: var(--gold);
+    background: rgba(232, 181, 75, 0.12);
+}
+
+.icon-btn-sm { width: 24px; height: 24px; font-size: 11px; }
+
+.badge {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    min-width: 16px;
+    height: 16px;
+    padding: 0 4px;
+    display: grid;
+    place-items: center;
+    border-radius: 8px;
+    background: var(--danger);
+    color: #2a0410;
+    font-size: 9.5px;
+    font-weight: 800;
+    border: 1.5px solid var(--panel-solid);
+}
+
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+}
+
+/* ============================================================
+   Floating cards — the one pattern every panel on the map uses.
+   A header is always visible (and always the collapse toggle); the body
+   collapses to zero height via the grid-rows accordion trick so nothing
+   ever has to sit on screen as a fixed sidebar.
+   ============================================================ */
+
+.floating-card {
+    position: absolute;
+    z-index: 20;
+    display: flex;
+    flex-direction: column;
+    animation: feed-in 0.22s ease;
+}
+
+.card-header-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 11px 8px 11px 14px;
+}
+
+.card-header-hit {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    text-align: left;
+    background: none;
+    border: none;
+    padding: 0;
+}
+
+.card-header-actions {
+    display: flex;
+    gap: 3px;
+    flex-shrink: 0;
+}
+
+.card-peek {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+}
+
+/*
+ * The accordion track. Deliberately NOT transitioned: animating
+ * `grid-template-rows` between 1fr and 0fr is unevenly supported, and where
+ * it isn't, the declared transition suppresses the change entirely and the
+ * card never collapses at all. The opacity fade below carries the motion
+ * instead, which every engine handles.
+ */
+.card-body-wrap {
+    display: grid;
+    grid-template-rows: 1fr;
+}
+
+.floating-card.is-collapsed .card-body-wrap { grid-template-rows: 0fr; }
+
+/* The grid item. Must stay free of margin/padding/border — anything with a
+   box outside the content box keeps the 0fr track propped open. */
+.card-body-clip {
+    min-height: 0;
+    overflow: hidden;
+    transition: opacity 0.2s ease;
+}
+
+.floating-card.is-collapsed .card-body-clip { opacity: 0; }
+
+/* All the spacing lives here, one level in from the collapsing track. */
+.card-body-inner {
+    display: grid;
+    gap: 14px;
+    margin: 0 14px 14px;
+    padding-top: 14px;
+    border-top: 1px solid var(--panel-line);
+}
+
+/* ---------- Command card (bottom-left) ---------- */
+
+.commandbar {
+    left: 16px;
+    bottom: 16px;
+    width: 274px;
+}
+
+.command-value {
+    font-size: 16px;
+    font-weight: 800;
+    color: var(--gold);
+    font-variant-numeric: tabular-nums;
+}
+
+.command-meter {
+    display: grid;
+    gap: 6px;
+}
+
+.command-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+}
+
+.command-rate {
+    font-size: 10.5px;
+    color: var(--ink-faint);
+    font-variant-numeric: tabular-nums;
+}
+
+.meter {
+    height: 4px;
+    border-radius: 2px;
+    background: rgba(255, 255, 255, 0.09);
+    overflow: hidden;
+}
+
+.meter-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--gold), #f7d585);
+    transition: width 0.25s ease;
+}
+
+.commit {
+    display: grid;
+    gap: 6px;
+}
+
+.commit-head {
+    display: flex;
+    justify-content: space-between;
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+}
+
+.commit-head strong {
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+}
+
+input[type="range"] {
+    width: 100%;
+    height: 18px;
+    -webkit-appearance: none;
+    appearance: none;
+    background: transparent;
+}
+
+input[type="range"]::-webkit-slider-runnable-track {
+    height: 4px;
+    border-radius: 2px;
+    background: rgba(255, 255, 255, 0.12);
+}
+
+input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 14px;
+    height: 14px;
+    margin-top: -5px;
+    border-radius: 50%;
+    background: var(--gold);
+    border: 2px solid #221701;
+}
+
+input[type="range"]::-moz-range-track {
+    height: 4px;
+    border-radius: 2px;
+    background: rgba(255, 255, 255, 0.12);
+}
+
+input[type="range"]::-moz-range-thumb {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--gold);
+    border: 2px solid #221701;
+}
+
+/* ---------- Territory card (top-right) ---------- */
+
+/* Anchored to the bottom edge, opposite the dispatches card at the top —
+   both are capped short enough that they can never meet in the middle. */
+.territory-panel {
+    right: 16px;
+    bottom: 16px;
+    width: 290px;
+}
+
+.territory-panel .card-body-clip {
+    max-height: 52vh;
+    overflow-y: auto;
+}
+
+/* Collapsed-row summary: owner dot, name, current garrison at a glance. */
+.tp-peek-name {
+    flex: 1;
+    min-width: 0;
+    font-family: var(--font-display);
+    font-size: 13px;
+    letter-spacing: 0.04em;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.tp-peek-troops {
+    font-size: 12px;
+    color: var(--ink-soft);
+    flex-shrink: 0;
+}
+
+.tp-head {
+    display: grid;
+    gap: 5px;
+}
+
+.tp-owner {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+}
+
+.tp-terrain {
+    font-size: 11.5px;
+    color: var(--ink-soft);
+    line-height: 1.5;
+}
+
+.tp-stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+}
+
+.stat {
+    padding: 9px 11px;
+    border-radius: var(--radius-sm);
+    background: rgba(255, 255, 255, 0.04);
+    display: grid;
+    gap: 3px;
+}
+
+.stat-label {
+    font-size: 9.5px;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+}
+
+.stat-value {
+    font-size: 15px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+}
+
+.stat-value.warn { color: var(--danger); }
+.stat-value.good { color: var(--good); }
+
+.tp-flag {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 11px;
+    border-radius: var(--radius-sm);
+    font-size: 11.5px;
+    line-height: 1.45;
+}
+
+.tp-flag.danger {
+    background: rgba(255, 84, 112, 0.12);
+    border: 1px solid rgba(255, 84, 112, 0.3);
+    color: #ffc2ce;
+}
+
+.tp-flag.warn {
+    background: rgba(255, 112, 67, 0.12);
+    border: 1px solid rgba(255, 112, 67, 0.3);
+    color: #ffd0bd;
+}
+
+.tp-flag.info {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--panel-line);
+    color: var(--ink-soft);
+}
+
+.build-grid {
+    display: grid;
+    gap: 6px;
+}
+
+.build {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 11px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--panel-line);
+    background: rgba(255, 255, 255, 0.03);
+    text-align: left;
+    transition: background 0.16s ease, border-color 0.16s ease;
+}
+
+.build:hover:not(:disabled) {
+    background: rgba(232, 181, 75, 0.1);
+    border-color: rgba(232, 181, 75, 0.4);
+}
+
+.build:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* Both are spans inside a grid cell, so they need to be blocks to stack. */
+.build-name {
+    display: block;
+    font-size: 11.5px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+}
+
+.build-note {
+    display: block;
+    font-size: 10.5px;
+    color: var(--ink-faint);
+    margin-top: 3px;
+    line-height: 1.35;
+}
+
+.build-cost {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--gold);
+    font-variant-numeric: tabular-nums;
+}
+
+/* ---------- Dispatches (top-right, under the tools cluster) ----------
+   Toggled from the top bar. Sits above the territory card and pushes it
+   down only when open, so the two never overlap. */
+
+.feed {
+    right: 16px;
+    top: 72px;
+    width: 290px;
+}
+
+.feed-list {
+    display: grid;
+    gap: 5px;
+    overflow-y: auto;
+    min-height: 0;
+    /* Capped so dispatches can never grow down into the territory card,
+       which is anchored to the opposite edge. No JS measurement needed. */
+    max-height: 30vh;
+    scrollbar-width: thin;
+}
+
+.feed-empty {
+    margin: 0;
+    padding: 6px 2px;
+    font-size: 11.5px;
+    color: var(--ink-faint);
+}
+
+.feed-item {
+    padding: 8px 11px;
+    border-radius: var(--radius-sm);
+    background: rgba(255, 255, 255, 0.04);
+    border-left: 2px solid var(--panel-line-strong);
+    font-size: 11.5px;
+    line-height: 1.4;
+}
+
+.feed-item.good { border-left-color: var(--good); }
+.feed-item.bad { border-left-color: var(--danger); }
+.feed-item.warn { border-left-color: var(--hot); }
+.feed-item.event { border-left-color: var(--gold); }
+.feed-item.combat { border-left-color: var(--hot); }
+
+.feed-title { font-weight: 700; }
+.feed-body { color: var(--ink-soft); font-size: 11px; }
+
+@keyframes feed-in {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: none; }
+}
+
+/* ---------- World event banner ---------- */
+
+.event-banner {
+    position: absolute;
+    top: 74px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 18px;
+    border-radius: var(--radius);
+    background: rgba(12, 16, 23, 0.92);
+    border: 1px solid rgba(232, 181, 75, 0.4);
+    box-shadow: 0 0 40px rgba(232, 181, 75, 0.16);
+    z-index: 25;
+    animation: banner-in 0.4s ease;
+}
+
+.event-icon { font-size: 19px; color: var(--gold); }
+.event-label {
+    font-family: var(--font-display);
+    font-size: 14px;
+    letter-spacing: 0.1em;
+}
+.event-blurb { font-size: 11.5px; color: var(--ink-soft); }
+.event-timer {
+    font-size: 11px;
+    color: var(--gold);
+    font-variant-numeric: tabular-nums;
+    padding-left: 12px;
+    border-left: 1px solid var(--panel-line);
+}
+
+@keyframes banner-in {
+    from { opacity: 0; transform: translate(-50%, -14px); }
+    to { opacity: 1; transform: translate(-50%, 0); }
+}
+
+/* ---------- Hint strip ---------- */
+
+.hint {
+    position: absolute;
+    bottom: 18px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 8px 16px;
+    border-radius: 100px;
+    background: rgba(12, 16, 23, 0.88);
+    border: 1px solid var(--panel-line);
+    font-size: 11.5px;
+    color: var(--ink-soft);
+    z-index: 22;
+    pointer-events: none;
+    white-space: nowrap;
+}
+
+.hint strong { color: var(--gold); font-weight: 700; }
+
+/* ---------- Pause veil ---------- */
+
+.veil {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    background: rgba(4, 6, 10, 0.62);
+    backdrop-filter: blur(3px);
+    z-index: 30;
+}
+
+.veil-word {
+    font-family: var(--font-display);
+    font-size: 40px;
+    letter-spacing: 0.34em;
+    color: var(--ink-soft);
+}
+
+/* ============================================================
+   END SCREEN
+   ============================================================ */
+
+.end {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    background: rgba(4, 6, 10, 0.9);
+    backdrop-filter: blur(10px);
+    z-index: 70;
+    animation: feed-in 0.5s ease;
+}
+
+.end-card {
+    width: min(520px, calc(100vw - 40px));
+    padding: 34px;
+    text-align: center;
+}
+
+.end-verdict {
+    font-family: var(--font-display);
+    font-size: 46px;
+    letter-spacing: 0.16em;
+    margin: 0 0 6px;
+}
+
+.end-verdict.victory {
+    background: linear-gradient(180deg, #fff6e0, var(--gold));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+
+.end-verdict.defeat { color: var(--danger); }
+
+.end-reason {
+    color: var(--ink-soft);
+    font-size: 13px;
+    margin: 0 0 26px;
+}
+
+.end-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-bottom: 26px;
+}
+
+.end-actions { display: grid; gap: 8px; }
+
+/* ---------- Narrow screens ---------- */
+
+@media (max-width: 1120px) {
+    .territory-panel,
+    .feed { width: 258px; }
+    .commandbar { width: 250px; }
+}
+
+@media (max-width: 880px) {
+    .territory-panel,
+    .feed { width: 232px; }
+    .commandbar { width: 224px; }
+    .territory-panel .card-body-clip { max-height: 44vh; }
+    .feed-list { max-height: 24vh; }
+    .brand-seed { display: none; }
+    .hint { display: none; }
+}
